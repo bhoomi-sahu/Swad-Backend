@@ -18,11 +18,8 @@ async (req, res) => {
       await Food.create({
 
         title,
-
         description,
-
         price,
-
         category,
 
         image:
@@ -55,9 +52,10 @@ async (req, res) => {
 
     const foods =
       await Food.find()
+
       .populate(
         "sellerId",
-        "name email"
+        "name email phone whatsapp bio address profileImage"
       );
 
     res.json(foods);
@@ -81,9 +79,50 @@ async (req, res) => {
     const food =
       await Food.findById(
         req.params.id
-      ).populate(
+      )
+
+      .populate(
         "sellerId",
-        "name email"
+        "name email phone whatsapp bio address profileImage"
+      );
+
+    if (!food) {
+
+      return res.status(404).json({
+
+        message:
+          "Food not found",
+
+      });
+
+    }
+
+    res.json(food);
+
+  } catch (error) {
+
+    res.status(500).json({
+      message:error.message,
+    });
+
+  }
+
+};
+
+// ADD REVIEW
+const addReview =
+async (req, res) => {
+
+  try {
+
+    const {
+      rating,
+      comment,
+    } = req.body;
+
+    const food =
+      await Food.findById(
+        req.params.id
       );
 
     if (!food) {
@@ -94,6 +133,40 @@ async (req, res) => {
       });
 
     }
+
+    const review = {
+
+      userName:
+        req.user.name,
+
+      rating:
+        Number(rating),
+
+      comment,
+
+    };
+
+    food.reviews.push(
+      review
+    );
+
+    food.totalReviews =
+      food.reviews.length;
+
+    food.rating =
+
+      food.reviews.reduce(
+
+        (acc, item) =>
+          acc + item.rating,
+
+        0
+
+      ) /
+
+      food.reviews.length;
+
+    await food.save();
 
     res.json(food);
 
@@ -170,14 +243,14 @@ async (req, res) => {
       await Food.findByIdAndUpdate(
 
         req.params.id,
-
         req.body,
-
         { new:true }
 
       );
 
-    res.json(updatedFood);
+    res.json(
+      updatedFood
+    );
 
   } catch (error) {
 
@@ -225,8 +298,10 @@ async (req, res) => {
     await food.deleteOne();
 
     res.json({
+
       message:
         "Food deleted",
+
     });
 
   } catch (error) {
@@ -247,5 +322,6 @@ module.exports = {
   getSellerFoods,
   updateFood,
   deleteFood,
+  addReview,
 
 };

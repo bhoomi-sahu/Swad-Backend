@@ -10,7 +10,6 @@ import {
 } from "react-router-dom";
 
 import API from "../services/api";
-
 import Navbar from "../components/Navbar";
 
 import {
@@ -19,11 +18,9 @@ import {
 
 export default function FoodDetails() {
 
-  const { id } =
-    useParams();
+  const { id } = useParams();
 
-  const navigate =
-    useNavigate();
+  const navigate = useNavigate();
 
   const { user } =
     useContext(AuthContext);
@@ -34,13 +31,18 @@ export default function FoodDetails() {
   const [loading, setLoading] =
     useState(true);
 
+  const [rating, setRating] =
+    useState(5);
+
+  const [comment, setComment] =
+    useState("");
+
   useEffect(() => {
 
     fetchFood();
 
-  }, []);
+  }, [id]);
 
-  // FETCH SINGLE FOOD
   const fetchFood =
   async () => {
 
@@ -53,58 +55,108 @@ export default function FoodDetails() {
 
       setFood(data);
 
-      setLoading(false);
-
     } catch (error) {
 
       console.log(error);
 
+    } finally {
+
       setLoading(false);
 
     }
+
   };
 
-  // ADD TO CART
   const addToCart =
   async () => {
 
     if (!user) {
 
-      return alert(
-        "Login First"
-      );
+      alert("Login First");
 
+      return;
     }
 
     try {
 
       await API.post(
-        "/cart/add",
-        {
-          foodId:
-            food._id,
 
+        "/cart/add",
+
+        {
+          foodId: food._id,
           quantity: 1,
         },
+
         {
           headers: {
             Authorization:
               `Bearer ${user.token}`,
           },
         }
+
       );
 
       alert(
         "Added To Cart"
       );
 
-      navigate("/cart");
-
     } catch (error) {
 
       console.log(error);
 
     }
+
+  };
+
+  const submitReview =
+  async () => {
+
+    if (!user) {
+
+      alert("Login First");
+
+      return;
+    }
+
+    try {
+
+      await API.post(
+
+        `/foods/${food._id}/review`,
+
+        {
+          rating,
+          comment,
+        },
+
+        {
+          headers: {
+            Authorization:
+              `Bearer ${user.token}`,
+          },
+        }
+
+      );
+
+      alert(
+        "Review Added"
+      );
+
+      setComment("");
+
+      fetchFood();
+
+    } catch (error) {
+
+      console.log(error);
+
+      alert(
+        error.response?.data?.message
+      );
+
+    }
+
   };
 
   if (loading) {
@@ -126,7 +178,28 @@ export default function FoodDetails() {
         </h1>
 
       </div>
+
     );
+
+  }
+
+  if (!food) {
+
+    return (
+
+      <div className="
+        min-h-screen
+        flex
+        items-center
+        justify-center
+      ">
+
+        Food Not Found
+
+      </div>
+
+    );
+
   }
 
   return (
@@ -139,9 +212,9 @@ export default function FoodDetails() {
       <Navbar />
 
       <div className="
-        max-w-6xl
+        max-w-7xl
         mx-auto
-        p-8
+        p-6
       ">
 
         <div className="
@@ -160,7 +233,7 @@ export default function FoodDetails() {
 
             <img
               src={`http://localhost:5000/${food.image}`}
-              alt=""
+              alt={food.title}
               className="
                 w-full
                 h-full
@@ -173,7 +246,7 @@ export default function FoodDetails() {
           {/* DETAILS */}
 
           <div className="
-            p-6
+            p-8
           ">
 
             <h1 className="
@@ -186,46 +259,85 @@ export default function FoodDetails() {
 
             <p className="
               text-gray-600
-              text-lg
               mb-6
             ">
               {food.description}
             </p>
 
+            <h2 className="
+              text-3xl
+              font-bold
+              text-orange-500
+              mb-4
+            ">
+              ₹{food.price}
+            </h2>
+
             <div className="
-              space-y-4
+              space-y-2
+              mb-6
             ">
 
-              <h2 className="
-                text-3xl
-                font-bold
-                text-orange-500
-              ">
-                ₹{food.price}
-              </h2>
-
-              <p className="
-                text-lg
-              ">
-                Category:
+              <p>
+                <b>Category:</b>
                 {" "}
-                <span className="
-                  font-bold
-                ">
-                  {food.category}
-                </span>
+                {food.category}
               </p>
 
+              <p>
+                <b>Seller:</b>
+                {" "}
+                {food.sellerId?.name}
+              </p>
+
+              <p>
+                <b>Phone:</b>
+                {" "}
+                {food.sellerId?.phone || "N/A"}
+              </p>
+
+              <p>
+                <b>Address:</b>
+                {" "}
+                {food.sellerId?.address || "N/A"}
+              </p>
+
+              <p>
+                <b>Bio:</b>
+                {" "}
+                {food.sellerId?.bio || "N/A"}
+              </p>
+
+            </div>
+
+            {/* RATING */}
+
+            <div className="
+              bg-yellow-50
+              p-4
+              rounded-xl
+              mb-6
+            ">
+
+              <h3 className="
+                text-xl
+                font-bold
+              ">
+                ⭐ Rating
+              </h3>
+
               <p className="
                 text-lg
               ">
-                Seller:
+                {food.rating?.toFixed(1)}
                 {" "}
-                <span className="
-                  font-bold
-                ">
-                  {food.sellerId?.name}
-                </span>
+                / 5
+              </p>
+
+              <p>
+                {food.totalReviews}
+                {" "}
+                Reviews
               </p>
 
             </div>
@@ -233,20 +345,18 @@ export default function FoodDetails() {
             {/* BUTTONS */}
 
             <div className="
-                   grid
-                   md:grid-cols-3
-                       gap-4
-                          mt-8
-                            ">
+              grid
+              md:grid-cols-2
+              gap-4
+            ">
+
               <button
                 onClick={addToCart}
                 className="
-                  w-full
                   bg-orange-500
                   text-white
-                  py-4
+                  py-3
                   rounded-lg
-                  text-lg
                   font-bold
                 "
               >
@@ -255,39 +365,62 @@ export default function FoodDetails() {
 
               <button
                 onClick={()=>
-                  navigate("/cart")
+                  navigate(`/chat/${food._id}`)
                 }
                 className="
-                  w-full
-                  bg-black
+                  bg-green-600
                   text-white
-                  py-4
+                  py-3
                   rounded-lg
-                  text-lg
                   font-bold
                 "
               >
-                Buy Now
+                Chat Seller
               </button>
 
-              <button
-                onClick={()=>
-                  navigate(
-                    `/chat/${food._id}`
-                  )
-                }
-                className="
-                  w-full
-                  bg-green-500
-                  text-white
-                  py-4
-                  rounded-lg
-                  text-lg
-                  font-bold
-                "
-              >
-                Chat With Seller
-              </button>
+              {/* WHATSAPP */}
+
+              {
+                food.sellerId?.whatsapp &&
+                (
+                  <a
+                    href={`https://wa.me/${food.sellerId.whatsapp}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="
+                      bg-green-500
+                      text-white
+                      py-3
+                      rounded-lg
+                      font-bold
+                      text-center
+                    "
+                  >
+                    WhatsApp Seller
+                  </a>
+                )
+              }
+
+              {/* CALL */}
+
+              {
+                food.sellerId?.phone &&
+                (
+                  <a
+                    href={`tel:${food.sellerId.phone}`}
+                    className="
+                      bg-blue-500
+                      text-white
+                      py-3
+                      rounded-lg
+                      font-bold
+                      text-center
+                    "
+                  >
+                    Call Seller
+                  </a>
+                )
+              }
 
             </div>
 
@@ -295,8 +428,142 @@ export default function FoodDetails() {
 
         </div>
 
+        {/* ADD REVIEW */}
+
+        <div className="
+          bg-white
+          mt-8
+          p-6
+          rounded-2xl
+          shadow
+        ">
+
+          <h2 className="
+            text-2xl
+            font-bold
+            mb-4
+          ">
+            Add Review
+          </h2>
+
+          <select
+            value={rating}
+            onChange={(e)=>
+              setRating(e.target.value)
+            }
+            className="
+              border
+              p-3
+              rounded
+              mb-4
+              w-full
+            "
+          >
+
+            <option value="5">⭐⭐⭐⭐⭐</option>
+            <option value="4">⭐⭐⭐⭐</option>
+            <option value="3">⭐⭐⭐</option>
+            <option value="2">⭐⭐</option>
+            <option value="1">⭐</option>
+
+          </select>
+
+          <textarea
+            rows="4"
+            value={comment}
+            onChange={(e)=>
+              setComment(e.target.value)
+            }
+            placeholder="Write Review..."
+            className="
+              w-full
+              border
+              p-3
+              rounded
+              mb-4
+            "
+          />
+
+          <button
+            onClick={submitReview}
+            className="
+              bg-orange-500
+              text-white
+              px-6
+              py-3
+              rounded-lg
+              font-bold
+            "
+          >
+            Submit Review
+          </button>
+
+        </div>
+
+        {/* REVIEWS */}
+
+        <div className="
+          bg-white
+          mt-8
+          p-6
+          rounded-2xl
+          shadow
+        ">
+
+          <h2 className="
+            text-2xl
+            font-bold
+            mb-4
+          ">
+            Customer Reviews
+          </h2>
+
+          {
+            food.reviews?.length > 0
+              ? (
+                food.reviews.map(
+                  (review, index) => (
+
+                    <div
+                      key={index}
+                      className="
+                        border-b
+                        py-4
+                      "
+                    >
+
+                      <h3 className="
+                        font-bold
+                      ">
+                        {review.userName}
+                      </h3>
+
+                      <p>
+                        ⭐ {review.rating}
+                      </p>
+
+                      <p>
+                        {review.comment}
+                      </p>
+
+                    </div>
+
+                  )
+                )
+              )
+              : (
+                <p>
+                  No Reviews Yet
+                </p>
+              )
+          }
+
+        </div>
+
       </div>
 
     </div>
+
   );
+
 }

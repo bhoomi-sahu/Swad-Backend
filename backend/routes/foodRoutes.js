@@ -54,17 +54,24 @@ router.get(
   foodController.getFoods
 );
 
+// SELLER FOODS
+router.get(
+  "/seller",
+  protect,
+  foodController.getSellerFoods
+);
+
 // GET SINGLE FOOD
 router.get(
   "/:id",
   foodController.getSingleFood
 );
 
-// SELLER FOODS
-router.get(
-  "/seller",
+// ADD REVIEW
+router.post(
+  "/:id/review",
   protect,
-  foodController.getSellerFoods
+  foodController.addReview
 );
 
 // ADD FOOD

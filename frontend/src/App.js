@@ -13,6 +13,7 @@ import Seller from "./pages/Seller";
 import Chat from "./pages/Chat";
 import MyOrders from "./pages/MyOrders";
 import Wishlist from "./pages/Wishlist";
+import FoodDetails from "./pages/FoodDetails";
 
 export default function App() {
 
@@ -25,6 +26,11 @@ export default function App() {
         <Route
           path="/"
           element={<Home />}
+        />
+
+        <Route
+          path="/food/:id"
+          element={<FoodDetails />}
         />
 
         <Route

@@ -15,7 +15,7 @@ const generateToken =
     { id },
     process.env.JWT_SECRET,
     {
-      expiresIn:"7d",
+      expiresIn: "7d",
     }
   );
 
@@ -32,6 +32,10 @@ async (req, res) => {
       email,
       password,
       role,
+      phone,
+      whatsapp,
+      address,
+      bio,
     } = req.body;
 
     const userExists =
@@ -65,17 +69,45 @@ async (req, res) => {
 
         role,
 
+        phone:
+          phone || "",
+
+        whatsapp:
+          whatsapp || "",
+
+        address:
+          address || "",
+
+        bio:
+          bio || "",
+
       });
 
     res.status(201).json({
 
-      _id:user._id,
+      _id:
+        user._id,
 
-      name:user.name,
+      name:
+        user.name,
 
-      email:user.email,
+      email:
+        user.email,
 
-      role:user.role,
+      role:
+        user.role,
+
+      phone:
+        user.phone,
+
+      whatsapp:
+        user.whatsapp,
+
+      address:
+        user.address,
+
+      bio:
+        user.bio,
 
       token:
         generateToken(
@@ -87,7 +119,8 @@ async (req, res) => {
   } catch (error) {
 
     res.status(500).json({
-      message:error.message,
+      message:
+        error.message,
     });
 
   }
@@ -136,13 +169,32 @@ async (req, res) => {
 
     res.json({
 
-      _id:user._id,
+      _id:
+        user._id,
 
-      name:user.name,
+      name:
+        user.name,
 
-      email:user.email,
+      email:
+        user.email,
 
-      role:user.role,
+      role:
+        user.role,
+
+      phone:
+        user.phone,
+
+      whatsapp:
+        user.whatsapp,
+
+      address:
+        user.address,
+
+      bio:
+        user.bio,
+
+      profileImage:
+        user.profileImage,
 
       token:
         generateToken(
@@ -154,7 +206,8 @@ async (req, res) => {
   } catch (error) {
 
     res.status(500).json({
-      message:error.message,
+      message:
+        error.message,
     });
 
   }
@@ -172,7 +225,9 @@ async (req, res) => {
 module.exports = {
 
   registerUser,
+
   loginUser,
+
   getProfile,
 
 };
