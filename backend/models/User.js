@@ -29,6 +29,12 @@ const userSchema =
         default: "user",
       },
 
+      gender: {
+        type: String,
+        enum: ["Male", "Female", "Other", ""],
+        default: "",
+      },
+
       // PROFILE IMAGE
       profileImage: {
         type: String,
@@ -43,6 +49,11 @@ const userSchema =
 
       // WHATSAPP NUMBER
       whatsapp: {
+        type: String,
+        default: "",
+      },
+
+      whatsappNumber: {
         type: String,
         default: "",
       },

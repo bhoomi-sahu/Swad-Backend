@@ -14,6 +14,7 @@ import Chat from "./pages/Chat";
 import MyOrders from "./pages/MyOrders";
 import Wishlist from "./pages/Wishlist";
 import FoodDetails from "./pages/FoodDetails";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 export default function App() {
 
@@ -43,35 +44,17 @@ export default function App() {
           element={<Register />}
         />
 
-        <Route
-          path="/cart"
-          element={<Cart />}
-        />
+        <Route element={<ProtectedRoute />}>
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/orders" element={<Orders />} />
+          <Route path="/my-orders" element={<MyOrders />} />
+          <Route path="/wishlist" element={<Wishlist />} />
+          <Route path="/chat/:roomId" element={<Chat />} />
+        </Route>
 
-        <Route
-          path="/orders"
-          element={<Orders />}
-        />
-
-        <Route
-          path="/seller"
-          element={<Seller />}
-        />
-
-        <Route
-          path="/chat/:roomId"
-          element={<Chat />}
-        />
-
-        <Route
-          path="/my-orders"
-          element={<MyOrders />}
-        />
-
-        <Route
-          path="/wishlist"
-          element={<Wishlist />}
-        />
+        <Route element={<ProtectedRoute allowedRoles={["seller"]} />}>
+          <Route path="/seller" element={<Seller />} />
+        </Route>
 
       </Routes>
 

@@ -31,96 +31,87 @@ async (req, res) => {
       name,
       email,
       password,
+      confirmPassword,
       role,
       phone,
       whatsapp,
+      whatsappNumber,
       address,
       bio,
+      gender,
     } = req.body;
 
-    const userExists =
-      await User.findOne({
-        email,
-      });
-
-    if (userExists) {
-
+    if (!name || !email || !password || !phone) {
       return res.status(400).json({
-        message:
-          "User already exists",
+        message: "Name, email, password and phone are required",
       });
+    }
 
+    if (password.length < 8) {
+      return res.status(400).json({
+        message: "Password must contain at least 8 characters",
+      });
+    }
+
+    if (confirmPassword && confirmPassword !== password) {
+      return res.status(400).json({
+        message: "Passwords do not match",
+      });
+    }
+
+    const emailExists =
+      await User.findOne({ email });
+
+    if (emailExists) {
+      return res.status(400).json({
+        message: "Email already registered",
+      });
+    }
+
+    const phoneExists =
+      await User.findOne({ phone });
+
+    if (phoneExists) {
+      return res.status(400).json({
+        message: "Phone number already registered",
+      });
     }
 
     const hashedPassword =
-      await bcrypt.hash(
-        password,
-        10
-      );
+      await bcrypt.hash(password, 10);
 
     const user =
       await User.create({
-
         name,
         email,
-
-        password:
-          hashedPassword,
-
-        role,
-
-        phone:
-          phone || "",
-
-        whatsapp:
-          whatsapp || "",
-
-        address:
-          address || "",
-
-        bio:
-          bio || "",
-
+        password: hashedPassword,
+        role: role || "seller",
+        gender: gender || "",
+        phone: phone || "",
+        whatsapp: whatsapp || whatsappNumber || "",
+        whatsappNumber: whatsappNumber || whatsapp || "",
+        address: address || "",
+        bio: bio || "",
       });
 
     res.status(201).json({
-
-      _id:
-        user._id,
-
-      name:
-        user.name,
-
-      email:
-        user.email,
-
-      role:
-        user.role,
-
-      phone:
-        user.phone,
-
-      whatsapp:
-        user.whatsapp,
-
-      address:
-        user.address,
-
-      bio:
-        user.bio,
-
-      token:
-        generateToken(
-          user._id
-        ),
-
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      phone: user.phone,
+      whatsapp: user.whatsapp,
+      whatsappNumber: user.whatsappNumber,
+      address: user.address,
+      bio: user.bio,
+      gender: user.gender,
+      token: generateToken(user._id),
     });
 
   } catch (error) {
 
     res.status(500).json({
-      message:
-        error.message,
+      message: error.message,
     });
 
   }
@@ -168,39 +159,18 @@ async (req, res) => {
     }
 
     res.json({
-
-      _id:
-        user._id,
-
-      name:
-        user.name,
-
-      email:
-        user.email,
-
-      role:
-        user.role,
-
-      phone:
-        user.phone,
-
-      whatsapp:
-        user.whatsapp,
-
-      address:
-        user.address,
-
-      bio:
-        user.bio,
-
-      profileImage:
-        user.profileImage,
-
-      token:
-        generateToken(
-          user._id
-        ),
-
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      phone: user.phone,
+      whatsapp: user.whatsapp,
+      whatsappNumber: user.whatsappNumber,
+      address: user.address,
+      bio: user.bio,
+      gender: user.gender,
+      profileImage: user.profileImage,
+      token: generateToken(user._id),
     });
 
   } catch (error) {

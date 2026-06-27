@@ -8,10 +8,15 @@ export default function AuthProvider({ children }) {
 
   useEffect(() => {
 
-    const savedUser = localStorage.getItem("user");
+    try {
+      const savedUser = localStorage.getItem("user");
 
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
+      if (savedUser) {
+        setUser(JSON.parse(savedUser));
+      }
+    } catch (error) {
+      console.error("Failed to parse saved user", error);
+      localStorage.removeItem("user");
     }
 
   }, []);

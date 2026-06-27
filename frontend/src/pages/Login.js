@@ -1,4 +1,5 @@
 import { useState, useContext } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import API from "../services/api";
 
@@ -7,6 +8,9 @@ import { AuthContext } from "../context/AuthContext";
 export default function Login() {
 
   const { login } = useContext(AuthContext);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || "/";
 
   const [form, setForm] = useState({
     email: "",
@@ -27,6 +31,7 @@ export default function Login() {
       login(data);
 
       alert("Login Success");
+      navigate(from, { replace: true });
 
     } catch (error) {
 

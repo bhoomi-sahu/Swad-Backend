@@ -4,49 +4,14 @@ const express =
 const router =
   express.Router();
 
-const multer =
-  require("multer");
-
-const path =
-  require("path");
-
 const protect =
   require("../middleware/authMiddleware");
 
+const upload =
+  require("../middleware/uploadMiddleware");
+
 const foodController =
   require("../controllers/foodController");
-
-// MULTER STORAGE
-const storage =
-  multer.diskStorage({
-
-    destination:
-      (req, file, cb) => {
-
-        cb(
-          null,
-          "uploads/"
-        );
-
-      },
-
-    filename:
-      (req, file, cb) => {
-
-        cb(
-          null,
-          Date.now() +
-          path.extname(
-            file.originalname
-          )
-        );
-
-      },
-
-  });
-
-const upload =
-  multer({ storage });
 
 // GET ALL FOODS
 router.get(
@@ -80,6 +45,14 @@ router.post(
   protect,
   upload.single("image"),
   foodController.addFood
+);
+
+// UPDATE FOOD
+router.put(
+  "/:id",
+  protect,
+  upload.single("image"),
+  foodController.updateFood
 );
 
 // DELETE FOOD

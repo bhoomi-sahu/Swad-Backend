@@ -34,6 +34,11 @@ const foodSchema =
         required: true,
       },
 
+      dishName: {
+        type: String,
+        default: "",
+      },
+
       description: {
         type: String,
         required: true,
@@ -44,7 +49,17 @@ const foodSchema =
         required: true,
       },
 
+      quantity: {
+        type: Number,
+        default: 1,
+      },
+
       image: {
+        type: String,
+        default: "",
+      },
+
+      imageUrl: {
         type: String,
         default: "",
       },
@@ -58,6 +73,26 @@ const foodSchema =
         type:
           mongoose.Schema.Types.ObjectId,
         ref: "User",
+      },
+
+      sellerName: {
+        type: String,
+        default: "",
+      },
+
+      sellerPhone: {
+        type: String,
+        default: "",
+      },
+
+      whatsappNumber: {
+        type: String,
+        default: "",
+      },
+
+      address: {
+        type: String,
+        default: "",
       },
 
       rating: {
