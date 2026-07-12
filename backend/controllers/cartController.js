@@ -1,6 +1,9 @@
 const Cart =
   require("../models/Cart");
 
+const Food =
+  require("../models/Food");
+
 // ADD TO CART
 const addToCart =
 async (req, res) => {
@@ -12,10 +15,20 @@ async (req, res) => {
       quantity,
     } = req.body;
 
+    const food =
+      await Food.findById(foodId)
+        .select("sellerId");
+
+    if (!food) {
+      return res.status(404).json({
+        message: "Food not found",
+      });
+    }
+
     let cart =
       await Cart.findOne({
         userId:req.user._id,
-      });
+      }).populate("items.foodId");
 
     // CREATE CART
     if (!cart) {
@@ -25,6 +38,8 @@ async (req, res) => {
           userId:req.user._id,
           items:[],
         });
+
+      cart.items = [];
 
     }
 
@@ -74,9 +89,13 @@ async (req, res) => {
     const cart =
       await Cart.findOne({
         userId:req.user._id,
-      }).populate(
-        "items.foodId"
-      );
+      }).populate({
+        path:"items.foodId",
+        populate:{
+          path:"sellerId",
+          select:"name",
+        },
+      });
 
     res.json(cart);
 

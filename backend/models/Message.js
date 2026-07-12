@@ -19,6 +19,11 @@ const messageSchema =
       required: true,
     },
 
+    orderId: {
+      type: String,
+      default: "",
+    },
+
   },
   {
     timestamps: true,

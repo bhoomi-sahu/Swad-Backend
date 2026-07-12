@@ -11,6 +11,8 @@ exports.placeOrder = async (req, res) => {
       deliveryType,
       paymentMethod,
       paymentStatus,
+      paymentReference,
+      orderInstructions,
       deliveryAddress,
       deliveryLat,
       deliveryLng,
@@ -28,68 +30,79 @@ exports.placeOrder = async (req, res) => {
 
     }
 
-    let total = 0;
+    const sellerGroups = cart.items.reduce((groups, item) => {
+      const sellerId = String(item.foodId?.sellerId || "");
 
-    cart.items.forEach(item => {
+      if (!sellerId) {
+        return groups;
+      }
 
-      total +=
-        item.foodId.price *
-        item.quantity;
+      if (!groups[sellerId]) {
+        groups[sellerId] = [];
+      }
 
-    });
+      groups[sellerId].push(item);
 
-    let deliveryCharge = 0;
+      return groups;
+    }, {});
 
-    if (
-      deliveryType === "delivery"
-    ) {
+    const sellerIds = Object.keys(sellerGroups);
 
-      deliveryCharge = 40;
-
+    if (sellerIds.length === 0) {
+      return res.status(400).json({
+        message: "Cart items are missing seller information",
+      });
     }
 
-    total += deliveryCharge;
+    const createdOrders = [];
 
-    const order = await Order.create({
+    for (const sellerId of sellerIds) {
+      const items = sellerGroups[sellerId];
 
-      userId: req.user._id,
+      let orderTotal = 0;
 
-      sellerId:
-        cart.items[0]
-        .foodId.sellerId,
+      items.forEach((item) => {
+        orderTotal += item.foodId.price * item.quantity;
+      });
 
-      items: cart.items.map(item => ({
-        foodId:
-          item.foodId._id,
+      let deliveryCharge = 0;
+      if (deliveryType === "delivery") {
+        deliveryCharge = 40;
+      }
 
-        quantity:
-          item.quantity,
-      })),
+      orderTotal += deliveryCharge;
 
-      totalPrice: total,
+      const order = await Order.create({
+        userId: req.user._id,
+        sellerId,
+        items: items.map((item) => ({
+          foodId: item.foodId._id,
+          quantity: item.quantity,
+        })),
+        totalPrice: orderTotal,
+        deliveryType,
+        deliveryCharge,
+        paymentMethod,
+        paymentStatus,
+        paymentReference,
+        orderInstructions,
+        deliveryAddress,
+        deliveryLat,
+        deliveryLng,
+      });
 
-      deliveryType,
-
-      deliveryCharge,
-
-      paymentMethod,
-
-      paymentStatus,
-
-      deliveryAddress,
-
-      deliveryLat,
-
-      deliveryLng,
-
-    });
+      createdOrders.push(order);
+    }
 
     // CLEAR CART
     cart.items = [];
 
     await cart.save();
 
-    res.status(201).json(order);
+    res.status(201).json({
+      orders: createdOrders,
+      orderCount: createdOrders.length,
+    });
 
   } catch (error) {
 
@@ -110,7 +123,11 @@ exports.getMyOrders = async (req, res) => {
       await Order.find({
         userId: req.user._id,
       })
-      .populate("items.foodId");
+      .populate("items.foodId")
+      .populate(
+        "sellerId",
+        "name email phone whatsapp whatsappNumber bio address profileImage"
+      );
 
     res.json(orders);
 
@@ -200,6 +217,71 @@ async (req, res) => {
     res.status(500).json({
       message:
         error.message,
+    });
+
+  }
+};
+
+
+// ADD ORDER REVIEW
+exports.addOrderReview = async (req, res) => {
+
+  try {
+
+    const { rating, comment } = req.body;
+
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({
+        message: "Order not found",
+      });
+    }
+
+    if (!order.userId) {
+      return res.status(400).json({
+        message: "This order cannot be reviewed",
+      });
+    }
+
+    if (String(order.userId) !== String(req.user._id)) {
+      return res.status(401).json({
+        message: "Not authorized",
+      });
+    }
+
+    if (!Number(rating) || Number(rating) < 1 || Number(rating) > 5) {
+      return res.status(400).json({
+        message: "Rating must be between 1 and 5",
+      });
+    }
+
+    const completedStatuses = ["delivered", "completed"];
+    if (!completedStatuses.includes(String(order.orderStatus || "").toLowerCase())) {
+      return res.status(400).json({
+        message: "You can review only completed orders",
+      });
+    }
+
+    order.reviewRating = Number(rating);
+    order.reviewComment = String(comment || "").trim();
+    order.reviewedAt = new Date();
+
+    await order.save();
+
+    const updatedOrder = await Order.findById(order._id)
+      .populate("items.foodId")
+      .populate(
+        "sellerId",
+        "name email phone whatsapp whatsappNumber bio address profileImage"
+      );
+
+    res.json(updatedOrder);
+
+  } catch (error) {
+
+    res.status(500).json({
+      message: error.message,
     });
 
   }

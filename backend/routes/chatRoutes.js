@@ -53,6 +53,7 @@ router.post(
         roomId,
         sender,
         text,
+        orderId,
       } = req.body;
 
       const message =
@@ -63,6 +64,8 @@ router.post(
           sender,
 
           text,
+
+          orderId: orderId || "",
 
         });
 

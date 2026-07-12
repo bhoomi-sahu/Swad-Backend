@@ -1,6 +1,18 @@
 const Food =
   require("../models/Food");
 
+const getUploadedImagePaths = (req) => {
+  if (Array.isArray(req.files) && req.files.length > 0) {
+    return req.files.map((file) => file.path);
+  }
+
+  if (req.file?.path) {
+    return [req.file.path];
+  }
+
+  return [];
+};
+
 // ADD FOOD
 const addFood =
 async (req, res) => {
@@ -18,6 +30,14 @@ async (req, res) => {
       address,
     } = req.body;
 
+    const images = getUploadedImagePaths(req);
+
+    if (images.length === 0) {
+      return res.status(400).json({
+        message: "Please upload at least one food image",
+      });
+    }
+
     const food =
       await Food.create({
         title: title || dishName || "",
@@ -26,8 +46,9 @@ async (req, res) => {
         price: Number(price),
         category,
         quantity: Number(quantity || 1),
-        image: req.file ? req.file.path : "",
-        imageUrl: req.file ? req.file.path : "",
+        image: images[0] || "",
+        imageUrl: images[0] || "",
+        images,
         sellerId: req.user._id,
         sellerName: req.user.name,
         sellerPhone: req.user.phone || "",
@@ -263,13 +284,20 @@ async (req, res) => {
 
     const updateData = { ...req.body };
 
-    if (req.file) {
-      updateData.image = req.file.path;
-      updateData.imageUrl = req.file.path;
+    const images = getUploadedImagePaths(req);
+
+    if (images.length > 0) {
+      updateData.images = images;
+      updateData.image = images[0];
+      updateData.imageUrl = images[0];
     }
 
     if (updateData.title && !updateData.dishName) {
       updateData.dishName = updateData.title;
+    }
+
+    if (!updateData.sellerName) {
+      updateData.sellerName = food.sellerName || req.user.name;
     }
 
     const updatedFood =

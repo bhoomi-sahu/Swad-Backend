@@ -17,6 +17,8 @@ const {
 
   updateOrderStatus,
 
+  addOrderReview,
+
 } = require(
   "../controllers/orderController"
 );
@@ -47,6 +49,13 @@ router.put(
   "/:id/status",
   protect,
   updateOrderStatus
+);
+
+// ADD REVIEW
+router.put(
+  "/:id/review",
+  protect,
+  addOrderReview
 );
 
 module.exports =

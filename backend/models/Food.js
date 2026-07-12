@@ -64,6 +64,11 @@ const foodSchema =
         default: "",
       },
 
+      images: {
+        type: [String],
+        default: [],
+      },
+
       category: {
         type: String,
         default: "Home Food",

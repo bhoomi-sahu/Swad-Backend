@@ -54,6 +54,28 @@ const orderSchema = new mongoose.Schema(
       default: "Pending",
     },
 
+    paymentReference: {
+      type: String,
+    },
+
+    orderInstructions: {
+      type: String,
+      default: "",
+    },
+
+    reviewRating: {
+      type: Number,
+    },
+
+    reviewComment: {
+      type: String,
+      default: "",
+    },
+
+    reviewedAt: {
+      type: Date,
+    },
+
     deliveryAddress: {
       type: String,
       required: function() {

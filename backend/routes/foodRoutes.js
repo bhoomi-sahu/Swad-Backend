@@ -43,7 +43,7 @@ router.post(
 router.post(
   "/add",
   protect,
-  upload.single("image"),
+  upload.array("images", 4),
   foodController.addFood
 );
 
@@ -51,7 +51,7 @@ router.post(
 router.put(
   "/:id",
   protect,
-  upload.single("image"),
+  upload.array("images", 4),
   foodController.updateFood
 );
 
